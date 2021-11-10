@@ -1,6 +1,6 @@
 {
   "name": "@muryllo/mailer",
-  "version": "0.0.1",
+  "version": "1.0.1",
   "description": "Esta é uma biblioteca simples e pragmática para envio de e-mails em sistemas feitos sob Node.js usando JavaScript ou Typescript.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
