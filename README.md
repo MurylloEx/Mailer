@@ -1,5 +1,5 @@
 <h1 align="center">@muryllo/mailer</h1>
-<p align="center">Esta é uma biblioteca simples e pragmática para envio de e-mails em sistemas feitos sob Node.js usando JavaScript ou Typescript.</p>
+<p align="center">This is a simple and pragmatic library for sending emails on systems built on Node.js using JavaScript or Typescript.</p>
 
 <p align="center">
   <img src="https://badgen.net/badge/license/MIT/green"/>
@@ -7,13 +7,43 @@
   <img src="https://badgen.net/badge/author/Muryllo/yellow?icon=label"/>
 </p>
 
-Você precisará apenas de uma chave de api fornecida por SMTP2GO para utilizar a biblioteca.
+You will only need an api key provided by SMTP2GO to use the library.
+
+## Instalation
+
+Run the following command in your project:
+
+```
+# if you are using npm
+npm i @muryllo/mailer
+```
+
+```
+# if you are using yarn
+yarn add @muryllo/mailer
+```
+
+Use this code snippet to send your emails, change it as you like and see fit.
+
+```java
+const mail: Mailer = Mailer.create()
+  .key('<your-api-key>')
+  .subject('Teste de Email!')
+  .from('Teste', 'test@muryllo.com.br')
+  .to('Muryllo Pimenta', 'muryllo.pimenta@upe.br')
+  .htmlBody('<h1>Welcome dear ${{ username }}</h1>')
+  .set('username', 'Muryllo');
+
+const result: MailerResponse = await mail.send();
+
+console.log(result.success());
+```
 
 ## Metadata
 
 Muryllo Pimenta de Oliveira – muryllo.pimenta@upe.br
 
-Distribuído sobre a licença MIT. Veja ``LICENSE`` para mais informações.
+Released under the MIT license. See ``LICENSE`` for more information.
 
 ## Contributing
 
