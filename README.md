@@ -25,7 +25,7 @@ yarn add @muryllo/mailer
 
 Use this code snippet to send your emails, change it as you like and see fit.
 
-```java
+```typescript
 const mail: Mailer = Mailer.create()
   .key('<your-api-key>')
   .subject('Teste de Email!')
