@@ -1,4 +1,4 @@
-import mjml from 'mjml';
+import mjml from 'mjml-core';
 import axios from 'axios';
 import { join } from 'path';
 import { MailerEnvelope } from './MailerEnvelope';
@@ -12,6 +12,7 @@ const HttpClient = axios.create({
     'Content-Type': 'application/json; charset=utf-8'
   }
 });
+
 export class Mailer {
 
   private m_SecretKey?: string;
@@ -40,7 +41,7 @@ export class Mailer {
 
     const textTemplateExists = await fexists(this.m_TextTemplatePath);
     const htmlTemplateExists = await fexists(this.m_HtmlTemplatePath);
-    const mjmlTemplateExists = await fexists(this.m_HtmlTemplatePath);
+    const mjmlTemplateExists = await fexists(this.m_MjmlTemplatePath);
 
     if (textTemplateExists) {
       textContent = await fread(this.m_TextTemplatePath);
