@@ -1,6 +1,6 @@
 {
   "name": "@muryllo/mailer",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "This is a simple and pragmatic library for sending emails on systems built on Node.js using JavaScript or Typescript.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

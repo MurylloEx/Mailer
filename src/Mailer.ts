@@ -107,9 +107,9 @@ export class Mailer {
     return this;
   }
 
-  mjmlTemplate(templateFile: string, options: Record<string, any>): Mailer {
+  mjmlTemplate(templateFile: string, options?: Record<string, any>): Mailer {
     this.m_MjmlTemplatePath = join(process.cwd(), templateFile);
-    this.m_MjmlTemplateOptions = options;
+    this.m_MjmlTemplateOptions = options ?? {};
     return this;
   }
   
