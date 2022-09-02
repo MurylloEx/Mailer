@@ -1,9 +1,10 @@
+import mjml from 'mjml';
 import axios from 'axios';
 import { join } from 'path';
 import { MailerEnvelope } from './MailerEnvelope';
 import { MailerResponse } from './MailerResponse';
-import { parseTemplateSyntax } from './MailerTemplateSyntaxParser';
 import { fexists, fread } from './MailerFileSystem';
+import { parseTemplateSyntax } from './MailerTemplateSyntaxParser';
 
 const HttpClient = axios.create({
   baseURL: 'https://api.smtp2go.com/v3/',
@@ -11,7 +12,6 @@ const HttpClient = axios.create({
     'Content-Type': 'application/json; charset=utf-8'
   }
 });
-
 export class Mailer {
 
   private m_SecretKey?: string;
@@ -24,6 +24,8 @@ export class Mailer {
   private m_Values: Record<string, string | number> = {};
   private m_TextTemplatePath: string = '';
   private m_HtmlTemplatePath: string = '';
+  private m_MjmlTemplatePath: string = '';
+  private m_MjmlTemplateOptions: Record<string, any> = {};
 
   private constructor() { }
 
@@ -34,9 +36,11 @@ export class Mailer {
   async envelope(): Promise<MailerEnvelope> {
     let textContent = '';
     let htmlContent = '';
+    let mjmlContent = '';
 
     const textTemplateExists = await fexists(this.m_TextTemplatePath);
     const htmlTemplateExists = await fexists(this.m_HtmlTemplatePath);
+    const mjmlTemplateExists = await fexists(this.m_HtmlTemplatePath);
 
     if (textTemplateExists) {
       textContent = await fread(this.m_TextTemplatePath);
@@ -44,14 +48,21 @@ export class Mailer {
     if (htmlTemplateExists) {
       htmlContent = await fread(this.m_HtmlTemplatePath);
     }
+    if (mjmlTemplateExists) {
+      mjmlContent = await fread(this.m_MjmlTemplatePath);
+    }
+
+    const parsedMjmlContent = mjml(mjmlContent, this.m_MjmlTemplateOptions).html;
+    const parsedTextContent = parseTemplateSyntax(this.m_TextBody || textContent, this.m_Values);
+    const parsedHtmlContent = parseTemplateSyntax(this.m_HtmlBody || htmlContent || parsedMjmlContent, this.m_Values);
 
     return {
       api_key: this.m_SecretKey,
       to: this.m_Recipients,
       sender: `${this.m_SenderName} <${this.m_SenderEmail}>`,
       subject: this.m_SubjectText,
-      text_body: parseTemplateSyntax(this.m_TextBody || textContent, this.m_Values),
-      html_body: parseTemplateSyntax(this.m_HtmlBody || htmlContent, this.m_Values)
+      text_body: parsedTextContent,
+      html_body: parsedHtmlContent
     };
   }
 
@@ -76,27 +87,33 @@ export class Mailer {
     return this;
   }
 
-  textBody(text: string) {
+  textBody(text: string): Mailer {
     this.m_TextBody = text;
     return this;
   }
 
-  htmlBody(html: string) {
+  htmlBody(html: string): Mailer {
     this.m_HtmlBody = html;
     return this;
   }
 
-  textTemplate(templateFile: string) {
+  textTemplate(templateFile: string): Mailer {
     this.m_TextTemplatePath = join(process.cwd(), templateFile);
     return this;
   }
 
-  htmlTemplate(templateFile: string) {
+  htmlTemplate(templateFile: string): Mailer {
     this.m_HtmlTemplatePath = join(process.cwd(), templateFile);
     return this;
   }
 
-  set(valueName: string, value: string | number) {
+  mjmlTemplate(templateFile: string, options: Record<string, any>): Mailer {
+    this.m_MjmlTemplatePath = join(process.cwd(), templateFile);
+    this.m_MjmlTemplateOptions = options;
+    return this;
+  }
+  
+  set(valueName: string, value: string | number): Mailer {
     this.m_Values = {
       ...this.m_Values,
       [valueName]: value
