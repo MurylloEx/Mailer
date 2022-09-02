@@ -105,8 +105,8 @@ export class Mailer {
   }
 
   send(): Promise<MailerResponse> {
-    return new Promise((resolve) => {
-      HttpClient.post('/email/send', this.envelope())
+    return new Promise(async (resolve) => {
+      HttpClient.post('/email/send', await this.envelope())
         .then((result: any) => {
           const { data } = result || {};
           resolve(new MailerResponse().build(data));
