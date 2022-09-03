@@ -5,6 +5,7 @@ import { MailerEnvelope } from './MailerEnvelope';
 import { MailerResponse } from './MailerResponse';
 import { fexists, fread } from './MailerFileSystem';
 import { parseTemplateSyntax } from './MailerTemplateSyntaxParser';
+import { MailerSandboxResult, MailerSandboxCallback } from './MailerSandboxResult';
 
 const HttpClient = axios.create({
   baseURL: 'https://api.smtp2go.com/v3/',
@@ -27,6 +28,8 @@ export class Mailer {
   private m_HtmlTemplatePath: string = '';
   private m_MjmlTemplatePath: string = '';
   private m_MjmlTemplateOptions: Record<string, any> = {};
+  private m_IsSandboxed: boolean = false;
+  private m_SandboxCallback?: MailerSandboxCallback;
 
   private constructor() { }
 
@@ -35,9 +38,8 @@ export class Mailer {
   }
 
   async envelope(): Promise<MailerEnvelope> {
-    let textContent = '';
-    let htmlContent = '';
-    let mjmlContent = '';
+    let textContent = this.m_TextBody ?? '';
+    let htmlContent = this.m_HtmlBody ?? '';
 
     const textTemplateExists = await fexists(this.m_TextTemplatePath);
     const htmlTemplateExists = await fexists(this.m_HtmlTemplatePath);
@@ -50,12 +52,12 @@ export class Mailer {
       htmlContent = await fread(this.m_HtmlTemplatePath);
     }
     if (mjmlTemplateExists) {
-      mjmlContent = await fread(this.m_MjmlTemplatePath);
+      const mjmlContent = await fread(this.m_MjmlTemplatePath);
+      htmlContent = mjml(mjmlContent, this.m_MjmlTemplateOptions).html;
     }
 
-    const parsedMjmlContent = mjml(mjmlContent, this.m_MjmlTemplateOptions).html;
-    const parsedTextContent = parseTemplateSyntax(this.m_TextBody || textContent, this.m_Values);
-    const parsedHtmlContent = parseTemplateSyntax(this.m_HtmlBody || htmlContent || parsedMjmlContent, this.m_Values);
+    const parsedTextContent = parseTemplateSyntax(textContent, this.m_Values);
+    const parsedHtmlContent = parseTemplateSyntax(htmlContent, this.m_Values);
 
     return {
       api_key: this.m_SecretKey,
@@ -122,7 +124,34 @@ export class Mailer {
     return this;
   }
 
+  sandbox(status: boolean, callback?: MailerSandboxCallback): Mailer {
+    this.m_IsSandboxed = status;
+    this.m_SandboxCallback = callback;
+    return this;
+  }
+
   send(): Promise<MailerResponse> {
+    if (this.m_IsSandboxed) {
+      return new Promise(async (resolve) => {
+        const envelope = await this.envelope();
+
+        const result: MailerSandboxResult = {
+          ...envelope,
+          values: this.m_Values,
+          textTemplatePath: this.m_TextTemplatePath,
+          htmlTemplatePath: this.m_HtmlTemplatePath,
+          mjmlTemplatePath: this.m_MjmlTemplatePath,
+          mjmlTemplateOptions: this.m_MjmlTemplateOptions
+        };
+
+        if (this.m_SandboxCallback) {
+          this.m_SandboxCallback(result);
+        }
+
+        resolve(new MailerResponse().sandbox());
+      });
+    }
+
     return new Promise(async (resolve) => {
       HttpClient.post('/email/send', await this.envelope())
         .then((result: any) => {

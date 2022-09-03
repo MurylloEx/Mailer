@@ -9,10 +9,34 @@ export class MailerResponse {
     this.data = new MailerResponseData();
   }
 
+  /**
+   * Build a MailerResponse instance from a JSON object.
+   * 
+   * @param response The JSON object returned by SMTP2GO API call.
+   * @returns The MailerResponse instance.
+   */
   build(response: any) {
     this.request_id = response?.request_id;
     this.data = this.data?.build(response?.data);
     return this;
+  }
+
+  /**
+   * Returns a sandboxed MailerResponse instance.
+   * 
+   * @returns The MailerResponse instance.
+   */
+  sandbox() {
+    const response = {
+      request_id: "00000000-0000-0000-0000-000000000000",
+      data: {
+        succeeded: 1,
+        failed: 0,
+        failures: [],
+        email_id: "xxxxxx-xxxxxx-xx"
+      }
+    };
+    return this.build(response);
   }
 
   /**
