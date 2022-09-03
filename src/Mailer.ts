@@ -1,4 +1,4 @@
-import mjml from 'mjml-core';
+import mjml from 'mjml';
 import axios from 'axios';
 import { join } from 'path';
 import { MailerEnvelope } from './MailerEnvelope';
